@@ -10,6 +10,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -22,6 +25,12 @@ import java.util.List;
 public class ValidationItemControllerV2 {
 
     private final ItemRepository itemRepository;
+    private final ItemValidator itemValidator;
+
+    @InitBinder // 메서드가 호출될때마다 검증기를 webDataBinder를 만들어서 안에 넣어준다.
+    public void init(WebDataBinder dataBinder) {
+        dataBinder.addValidators(itemValidator);
+    }
 
     @GetMapping
     public String items(Model model) {
@@ -159,7 +168,7 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add")
+//    @PostMapping("/add")
     public String addItemV4(@ModelAttribute Item item, BindingResult bindingResult,
                             RedirectAttributes redirectAttributes,
                             Model model) {
@@ -168,11 +177,11 @@ public class ValidationItemControllerV2 {
         log.info("target={}", bindingResult.getTarget());
 
         //검증 로직
+//        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "itemNamew", "required"); // hasText한것과 동일한 로직, 줄여쓰기
         if (!StringUtils.hasText(item.getItemName())) {
             /* 메세지 코드 부분에 new String[]() 배열로 여러개 하면 첫번째거 없으면 두번재거 찾음*/
             bindingResult.rejectValue("itemName", "required");
 //            new String[] ("required.item.itemName"), "required") 우선순위로 두개 만들어줌. 그래서 properties 에서 우선순위 적용가능함
-
         }
         if (item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
             bindingResult.rejectValue("price", "range", new Object[]{1000, 1000000}, null);
@@ -188,6 +197,47 @@ public class ValidationItemControllerV2 {
                 bindingResult.reject("totalPriceMin", new Object[]{10000, resultPrice}, null);
             }
         }
+
+        // 검증에 실패하면 다시 입력 폼으로
+        if (bindingResult.hasErrors()) {
+            log.info("errors={}", bindingResult);
+            return "validation/v2/addForm";
+        }
+
+        // 성공 로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+//    @PostMapping("/add")
+    public String addItemV5(@ModelAttribute Item item, BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes,
+                            Model model) {
+
+        if (itemValidator.supports(item.getClass())) {
+            itemValidator.validate(item,bindingResult);
+        }
+
+        // 검증에 실패하면 다시 입력 폼으로
+        if (bindingResult.hasErrors()) {
+            log.info("errors={}", bindingResult);
+            return "validation/v2/addForm";
+        }
+
+        // 성공 로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    //@Validated로 검증기를 넣을 수 있다. 검증기를 실행하라는 애노테이션이다. 검증기가 여러개 있으면 supports() 메서드로 맞는 검증기 찾음
+    @PostMapping("/add")
+    public String addItemV6(@Validated @ModelAttribute Item item, BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes,
+                            Model model) {
 
         // 검증에 실패하면 다시 입력 폼으로
         if (bindingResult.hasErrors()) {
