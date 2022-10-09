@@ -1,6 +1,7 @@
 package hello.login.web.interceptor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @Slf4j
+@Component
 public class LogInterceptor implements HandlerInterceptor {
 
     public static final String LOG_ID = "logId";
@@ -35,7 +37,7 @@ public class LogInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 컨트롤러 실행 후 실행됨
+     * 컨트롤러 실행되고 ModelAndView 을 디스패처 서블릿에 반환 후 실행됨
      * 컨트롤러에서 예외터지면 실행되지 않음
      */
     @Override
@@ -44,7 +46,8 @@ public class LogInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * http response를 완전히 반환한 후에 실행
+     * http response를 완전히 반환한 후에, 뷰가 렌더링 된 후에 실행
+     * 컨트롤러에서 예외 발생해도 실행됨, ex파라미터에 예외정보도 알 수 있음, 예외 아니면 null
      */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
