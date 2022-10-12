@@ -6,7 +6,7 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-//@Component // 스프링이 제공하는 에러 컨트롤러를 사용하기 위해 주석처리
+//@Component // 스프링이 제공하는 에러 컨트롤러를 사용하려면 주석처리
 public class WebServerCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
 
     @Override
