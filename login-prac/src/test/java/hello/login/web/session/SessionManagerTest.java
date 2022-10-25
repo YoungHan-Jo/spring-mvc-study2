@@ -13,12 +13,6 @@ class SessionManagerTest {
 
     @Test
     void sessionTest() {
-
-//        HttpServletResponse response = new HttpServletResponse() {
-//        }
-//        HttpServletResponse 는 인터페이스이기 때문에 구현체를 만들어줘야함
-//        하지만 Mock객체를 만들면 사용가능
-
         //세션 생성
         MockHttpServletResponse response = new MockHttpServletResponse();
         Member member = new Member();
@@ -36,7 +30,6 @@ class SessionManagerTest {
         sessionManager.expire(request);
         Object expired = sessionManager.getSession(request);
         assertThat(expired).isNull();
-
-
     }
+
 }
